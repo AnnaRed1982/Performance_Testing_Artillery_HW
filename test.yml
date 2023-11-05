@@ -1,38 +1,41 @@
 config:
   target: "http://httpbin.org/"
   phases:
-    - duration: 1
+    - duration: 10
       arrivalRate: 1
-      name: Artillery First Test
+      name: Artillery HW Test
   payload:
       -
-        path: "keywords.csv"
+        path: "parametrs.csv"
         fields:
-          - "keyword1"
-          - "keyword2"
+          - "login"
+          - "password"
         order: sequence
   plugins:
      ensure: {}
   ensure:
     thresholds:
         - http.response_time.p95: 1000
+        - http.response_time.p99: 1000
     conditions:
         - expression: vusers.failed == 0
-        - expression: "http.request_rate >= 2 and http.response_time.max < 600"
+        - expression: vusers.created == 10
+        - expression: http.responses == 30
+        - expression: "http.request_rate >= 3 and http.response_time.max < 2000"
 scenarios:
 - name: Getting a resource
   flow:
     - get:
-        url: "{{ target }}get?param1={{keyword1}}"
+        url: "{{ target }}get"
         capture:            
             - json: "$.url"
               as: "request_url_get"
     - log: "Requested url_get is: {{request_url_get}}"
     - post:
-        url: "{{ target }}post?param2={{keyword2}}"
+        url: "{{ target }}post"
         json:
-          username: "Test User"
-          password: "Temp Password"
+          username: "{{login}}"
+          password: "{{password}}"
         capture:
             - json: "$.json"
               as: "request_body"
